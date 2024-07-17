@@ -18,42 +18,75 @@ function Handle-Error {
     exit
 }
 
+# Check if a font is installed
+function Test-FontInstalled {
+    param (
+        [string]$FontName
+    )
+    Add-Type -AssemblyName System.Drawing
+    $fonts = (New-Object System.Drawing.Text.InstalledFontCollection).Families
+    return $fonts.Name -contains $FontName
+}
+
 # Main script
 try {
     Write-Output "Starting the setup process..."
     Pause-Script
 
-    # Download and install JetBrains Mono
-    Write-Output "Downloading JetBrains Mono font..."
-    Invoke-WebRequest -Uri "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip" -OutFile "$env:TEMP\JetBrainsMono.zip" -ErrorAction Stop
-    Pause-Script
+    # Check and install JetBrains Mono
+    if (Test-FontInstalled "JetBrains Mono") {
+        Write-Output "JetBrains Mono font is already installed. Setting as default terminal font."
+    } else {
+        # Remove any existing temp folder for JetBrains Mono
+        $tempFontPath = "$env:TEMP\JetBrainsMono"
+        if (Test-Path $tempFontPath) {
+            Remove-Item -Path $tempFontPath -Recurse -Force
+        }
 
-    Write-Output "Extracting JetBrains Mono font..."
-    Expand-Archive -Path "$env:TEMP\JetBrainsMono.zip" -DestinationPath "$env:TEMP\JetBrainsMono" -ErrorAction Stop
-    Pause-Script
+        Write-Output "Downloading JetBrains Mono font..."
+        Invoke-WebRequest -Uri "https://download.jetbrains.com/fonts/JetBrainsMono-2.242.zip" -OutFile "$env:TEMP\JetBrainsMono.zip" -ErrorAction Stop
+        Pause-Script
 
-    Write-Output "Installing JetBrains Mono font..."
-    Copy-Item -Path "$env:TEMP\JetBrainsMono\ttf\*.*" -Destination "$env:WINDIR\Fonts" -ErrorAction Stop
-    Pause-Script
+        Write-Output "Extracting JetBrains Mono font..."
+        Expand-Archive -Path "$env:TEMP\JetBrainsMono.zip" -DestinationPath "$tempFontPath" -ErrorAction Stop
+        Pause-Script
 
-    # Register JetBrains Mono as a PowerShell font
-    Write-Output "Setting JetBrains Mono as PowerShell terminal font..."
-    Set-ItemProperty -Path "HKCU:\Console\%SystemRoot%_system32_windowsPowerShell_v1.0_powershell.exe" -Name "FaceName" -Value "JetBrains Mono" -ErrorAction Stop
-    Pause-Script
+        Write-Output "Installing JetBrains Mono font..."
+        Copy-Item -Path "$tempFontPath\ttf\*.*" -Destination "$env:WINDIR\Fonts" -ErrorAction Stop
+        Pause-Script
 
-    # Install Scoop
-    Write-Output "Installing Scoop package manager..."
-    Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh') -ErrorAction Stop
-    Pause-Script
+        # Register JetBrains Mono as a PowerShell font
+        Write-Output "Setting JetBrains Mono as PowerShell terminal font..."
+        Set-ItemProperty -Path "HKCU:\Console\%SystemRoot%_system32_windowsPowerShell_v1.0_powershell.exe" -Name "FaceName" -Value "JetBrains Mono" -ErrorAction Stop
+        Pause-Script
+    }
 
-    # Install fastfetch and starship using Scoop
-    Write-Output "Installing fastfetch using Scoop..."
-    scoop install fastfetch -ErrorAction Stop
-    Pause-Script
+    # Install Scoop if not installed
+    if (Get-Command scoop -ErrorAction SilentlyContinue) {
+        Write-Output "Scoop is already installed."
+    } else {
+        Write-Output "Installing Scoop package manager..."
+        Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh') -ErrorAction Stop
+        Pause-Script
+    }
 
-    Write-Output "Installing starship using Scoop..."
-    scoop install starship -ErrorAction Stop
-    Pause-Script
+    # Install fastfetch if not installed
+    if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
+        Write-Output "fastfetch is already installed."
+    } else {
+        Write-Output "Installing fastfetch using Scoop..."
+        scoop install fastfetch -ErrorAction Stop
+        Pause-Script
+    }
+
+    # Install starship if not installed
+    if (Get-Command starship -ErrorAction SilentlyContinue) {
+        Write-Output "starship is already installed."
+    } else {
+        Write-Output "Installing starship using Scoop..."
+        scoop install starship -ErrorAction Stop
+        Pause-Script
+    }
 
     # Set starship as the default prompt in PowerShell profile
     $profilePath = "$PROFILE"
@@ -63,18 +96,12 @@ try {
         Pause-Script
     }
 
-    # Add fastfetch to the beginning of the profile
-    Write-Output "Adding fastfetch to PowerShell profile..."
+    # Add fastfetch and starship initialization to the profile
+    Write-Output "Configuring PowerShell profile..."
     Add-Content -Path $profilePath -Value @"
 if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
     fastfetch
 }
-"@ -ErrorAction Stop
-    Pause-Script
-
-    # Add starship initialization to the profile
-    Write-Output "Adding starship initialization to PowerShell profile..."
-    Add-Content -Path $profilePath -Value @"
 Invoke-Expression (&starship init powershell)
 "@ -ErrorAction Stop
     Pause-Script
