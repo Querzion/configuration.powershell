@@ -1,5 +1,5 @@
 # Download and install JetBrains Mono
-Invoke-WebRequest -Uri "https://download.jetbrains.com/fonts/JetBrainsMono-2.242.zip" -OutFile "$env:TEMP\JetBrainsMono.zip"
+Invoke-WebRequest -Uri "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip" -OutFile "$env:TEMP\JetBrainsMono.zip"
 Expand-Archive -Path "$env:TEMP\JetBrainsMono.zip" -DestinationPath "$env:TEMP\JetBrainsMono"
 Copy-Item -Path "$env:TEMP\JetBrainsMono\ttf\*.*" -Destination "$env:WINDIR\Fonts"
 
@@ -7,7 +7,11 @@ Copy-Item -Path "$env:TEMP\JetBrainsMono\ttf\*.*" -Destination "$env:WINDIR\Font
 Set-ItemProperty -Path "HKCU:\Console\%SystemRoot%_system32_windowsPowerShell_v1.0_powershell.exe" -Name "FaceName" -Value "JetBrains Mono"
 
 # Install Scoop
-Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+#Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+iwr -useb get.scoop.sh | iex
+
+
 
 # Install fastfetch and starship using Scoop
 scoop install fastfetch starship
