@@ -1,46 +1,94 @@
-# Download and install JetBrains Mono
-Invoke-WebRequest -Uri "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip" -OutFile "$env:TEMP\JetBrainsMono.zip"
-Expand-Archive -Path "$env:TEMP\JetBrainsMono.zip" -DestinationPath "$env:TEMP\JetBrainsMono"
-Copy-Item -Path "$env:TEMP\JetBrainsMono\ttf\*.*" -Destination "$env:WINDIR\Fonts"
+###
+###    JetBrains Mono Font| https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip
+###
+###
+###
 
-# Register JetBrains Mono as a PowerShell font
-Set-ItemProperty -Path "HKCU:\Console\%SystemRoot%_system32_windowsPowerShell_v1.0_powershell.exe" -Name "FaceName" -Value "JetBrains Mono"
-
-# Install Scoop
-#Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
-Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-iwr -useb get.scoop.sh | iex
-
-
-
-# Install fastfetch and starship using Scoop
-scoop install fastfetch starship
-
-# Set starship as the default prompt in PowerShell profile
-$profilePath = "$PROFILE"
-if (!(Test-Path -Path $profilePath)) {
-    New-Item -ItemType File -Path $profilePath -Force
+# Function to pause the script
+function Pause-Script {
+    Write-Host "Press any key to continue..."
+    [void][System.Console]::ReadKey($true)
 }
 
-# Add fastfetch to the beginning of the profile
-Add-Content -Path $profilePath -Value @"
+# Function to handle errors
+function Handle-Error {
+    Write-Error $_.Exception.Message
+    Write-Host "An error occurred. Press any key to exit..."
+    [void][System.Console]::ReadKey($true)
+    exit
+}
+
+# Main script
+try {
+    Write-Output "Starting the setup process..."
+    Pause-Script
+
+    # Download and install JetBrains Mono
+    Write-Output "Downloading JetBrains Mono font..."
+    Invoke-WebRequest -Uri "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip" -OutFile "$env:TEMP\JetBrainsMono.zip" -ErrorAction Stop
+    Pause-Script
+
+    Write-Output "Extracting JetBrains Mono font..."
+    Expand-Archive -Path "$env:TEMP\JetBrainsMono.zip" -DestinationPath "$env:TEMP\JetBrainsMono" -ErrorAction Stop
+    Pause-Script
+
+    Write-Output "Installing JetBrains Mono font..."
+    Copy-Item -Path "$env:TEMP\JetBrainsMono\ttf\*.*" -Destination "$env:WINDIR\Fonts" -ErrorAction Stop
+    Pause-Script
+
+    # Register JetBrains Mono as a PowerShell font
+    Write-Output "Setting JetBrains Mono as PowerShell terminal font..."
+    Set-ItemProperty -Path "HKCU:\Console\%SystemRoot%_system32_windowsPowerShell_v1.0_powershell.exe" -Name "FaceName" -Value "JetBrains Mono" -ErrorAction Stop
+    Pause-Script
+
+    # Install Scoop
+    Write-Output "Installing Scoop package manager..."
+    Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh') -ErrorAction Stop
+    Pause-Script
+
+    # Install fastfetch and starship using Scoop
+    Write-Output "Installing fastfetch using Scoop..."
+    scoop install fastfetch -ErrorAction Stop
+    Pause-Script
+
+    Write-Output "Installing starship using Scoop..."
+    scoop install starship -ErrorAction Stop
+    Pause-Script
+
+    # Set starship as the default prompt in PowerShell profile
+    $profilePath = "$PROFILE"
+    if (!(Test-Path -Path $profilePath)) {
+        Write-Output "Creating PowerShell profile..."
+        New-Item -ItemType File -Path $profilePath -Force -ErrorAction Stop
+        Pause-Script
+    }
+
+    # Add fastfetch to the beginning of the profile
+    Write-Output "Adding fastfetch to PowerShell profile..."
+    Add-Content -Path $profilePath -Value @"
 if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
     fastfetch
 }
-"@
+"@ -ErrorAction Stop
+    Pause-Script
 
-# Add starship initialization to the profile
-Add-Content -Path $profilePath -Value @"
+    # Add starship initialization to the profile
+    Write-Output "Adding starship initialization to PowerShell profile..."
+    Add-Content -Path $profilePath -Value @"
 Invoke-Expression (&starship init powershell)
-"@
+"@ -ErrorAction Stop
+    Pause-Script
 
-# Configure the starship prompt with Tokyo Night theme
-$starshipConfigPath = "$env:USERPROFILE\.config\starship.toml"
-if (!(Test-Path -Path $starshipConfigPath)) {
-    New-Item -ItemType File -Path $starshipConfigPath -Force
-}
+    # Configure the starship prompt with Tokyo Night theme
+    $starshipConfigPath = "$env:USERPROFILE\.config\starship.toml"
+    if (!(Test-Path -Path $starshipConfigPath)) {
+        Write-Output "Creating starship configuration directory..."
+        New-Item -ItemType File -Path $starshipConfigPath -Force -ErrorAction Stop
+        Pause-Script
+    }
 
-Set-Content -Path $starshipConfigPath -Value @"
+    Write-Output "Configuring starship prompt with Tokyo Night theme..."
+    Set-Content -Path $starshipConfigPath -Value @"
 format = """
 [░▒▓](#a3aed2)\
 [  ](bg:#a3aed2 fg:#090c0c)\
@@ -105,21 +153,27 @@ disabled = false
 time_format = "%R" # Hour:Minute Format
 style = "bg:#1d2230"
 format = '[[  \$time ](fg:#a0a9cb bg:#1d2230)](\$style)'
-"@
+"@ -ErrorAction Stop
+    Pause-Script
 
-# Configure fastfetch
-$fastfetchConfigDir = "$env:USERPROFILE\.config\fastfetch"
-if (-Not (Test-Path -Path $fastfetchConfigDir)) {
-    New-Item -ItemType Directory -Path $fastfetchConfigDir -Force
-}
+    # Configure fastfetch
+    $fastfetchConfigDir = "$env:USERPROFILE\.config\fastfetch"
+    if (-Not (Test-Path -Path $fastfetchConfigDir)) {
+        Write-Output "Creating fastfetch configuration directory..."
+        New-Item -ItemType Directory -Path $fastfetchConfigDir -Force -ErrorAction Stop
+        Pause-Script
+    }
 
-$fastfetchConfigPath = "$fastfetchConfigDir\config.conf"
-if (-Not (Test-Path -Path $fastfetchConfigPath)) {
-    New-Item -ItemType File -Path $fastfetchConfigPath -Force
-}
+    $fastfetchConfigPath = "$fastfetchConfigDir\config.conf"
+    if (-Not (Test-Path -Path $fastfetchConfigPath)) {
+        Write-Output "Creating fastfetch configuration file..."
+        New-Item -ItemType File -Path $fastfetchConfigPath -Force -ErrorAction Stop
+        Pause-Script
+    }
 
-# Extended content for fastfetch config
-$fastfetchConfigContent = @"
+    Write-Output "Configuring fastfetch with additional options..."
+    # Extended content for fastfetch config
+    $fastfetchConfigContent = @"
 # Fastfetch configuration file
 
 # General information
@@ -152,4 +206,10 @@ fetchNetwork: true
 fetchFont: true
 "@
 
-Set-Content -Path $fastfetchConfigPath -Value $fastfetchConfigContent
+    Set-Content -Path $fastfetchConfigPath -Value $fastfetchConfigContent -ErrorAction Stop
+    Pause-Script
+
+    Write-Output "Setup process completed successfully!"
+} catch {
+    Handle-Error
+}
