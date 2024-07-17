@@ -1,7 +1,11 @@
 ###
 ###    JetBrains Mono Font| https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip
+###    JetBrains Mono Font Name| JetBrainsMonoNLNerdFont-Regular
+###   
+###    Scoop Install Command| (without the ### in front of them)    
 ###
-###
+###    Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+###    iwr -useb get.scoop.sh | iex
 ###
 
 # Function to pause the script
@@ -44,7 +48,7 @@ try {
         }
 
         Write-Output "Downloading JetBrains Mono font..."
-        Invoke-WebRequest -Uri "https://download.jetbrains.com/fonts/JetBrainsMono-2.242.zip" -OutFile "$env:TEMP\JetBrainsMono.zip" -ErrorAction Stop
+        Invoke-WebRequest -Uri "https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/JetBrainsMono.zip" -OutFile "$env:TEMP\JetBrainsMono.zip" -ErrorAction Stop
         Pause-Script
 
         Write-Output "Extracting JetBrains Mono font..."
